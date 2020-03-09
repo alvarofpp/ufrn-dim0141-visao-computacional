@@ -19,7 +19,6 @@ Os cones S, M e L correspondem a cones que percebem diferentes comprimentos de o
 
 Quando a luz amarela é projetada na retina, os cones de percepção das cores verde (cones M) e vermelho (cones L) são os mais ativados, pois sua percepção de comprimentos de onda são os que chegam perto do comprimento de onda da cor amarela.
 
-
 **Quais desses formatos são vetoriais e quais são bitmaps? BMP, SVG, JPG, EPS, PNG**
 
 - Vetoriais: SVG e EPS.
