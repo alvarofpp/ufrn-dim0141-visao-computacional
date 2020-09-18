@@ -3,31 +3,29 @@ import cv2
 import numpy as np
 
 
-def increase_brightness(img, value):
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    #hsv[:, :, 2] += value
-
-    for x in range(0, len(hsv)):
-        for y in range(0, len(hsv[0])):
-            new_color = hsv[x, y][2] + value
-            hsv[x, y][2] = 255 if new_color > 255 else new_color
-
-    return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-
 def main(args):
-    if len(args) != 5 and False:
+    if len(args) != 5:
         print("A quantidade de argumentos é inválido.")
         exit(1)
 
     # Imagem original
     filename = args[0]
     img = cv2.imread(filename)
-    new_img = cv2.add(img, np.array([500.0]))
 
-    #cv2.imshow('RGB', np.concatenate((img, increase_brightness(img, 5000)), axis=1))
-    cv2.imshow('RGB', np.concatenate((increase_brightness(img, 50), new_img), axis=1))
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # Increase the brightness
+    increase_brightness_img = cv2.add(img, np.array([float(args[1])]))
+
+    # Draw lines
+    width_between_lines = int(args[2])
+    line_thickness = int(args[3])
+    line_color = (0, 0, 0)
+    for i in range(0, increase_brightness_img.shape[0], width_between_lines+line_thickness):
+        pt1 = (i, 0)
+        pt2 = (i, increase_brightness_img.shape[0] - 1)
+        cv2.line(increase_brightness_img, pt1, pt2, line_color, thickness=line_thickness)
+
+    # Result
+    cv2.imwrite(args[4], increase_brightness_img)
 
 
 if __name__ == "__main__":
