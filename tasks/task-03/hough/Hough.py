@@ -5,9 +5,8 @@ class Hough:
 
     @staticmethod
     def lines_accumulator(img, rho_resolution=1, theta_resolution=1):
-        ''' A function for creating a Hough Accumulator for lines in an image. '''
-        height, width = img.shape  # we need heigth and width to calculate the diag
-        img_diagonal = np.ceil(np.sqrt(height ** 2 + width ** 2))  # a**2 + b**2 = c**2
+        height, width = img.shape
+        img_diagonal = np.ceil(np.sqrt(height ** 2 + width ** 2))
         rhos = np.arange(-img_diagonal, img_diagonal + 1, rho_resolution)
         thetas = np.deg2rad(np.arange(-90, 90, theta_resolution))
 
