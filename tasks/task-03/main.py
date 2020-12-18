@@ -1,8 +1,12 @@
 import cv2
-from Hough import Draw, Hough, Plot
+from utils import Parse
+from hough import Draw, Hough, Plot
+
+
+parse = Parse()
 
 # Image
-shapes = cv2.imread('images/test_01.png')
+shapes = cv2.imread(parse.filename)
 # Plot.show(shapes, 'Original Image')
 
 # Edges
@@ -11,11 +15,11 @@ shapes_blurred = cv2.GaussianBlur(shapes_grayscale, (5, 5), 1.5)
 canny_edges = cv2.Canny(shapes_blurred, 100, 200)
 # Plot.show(canny_edges, 'Canny Edges')
 
-# run hough_ on the shapes canny_edges image
-accumulator, rhos, thetas = Hough.lines_accumulator(canny_edges)
-indicies, accumulator = Hough.find_peaks(accumulator, 5, nhood_size=11)
-# Plot.accumulator(accumulator)
-Draw.lines(shapes, indicies, rhos, thetas)
+# Lines
+accumulator, rhos, thetas = Hough.accumulator(canny_edges, **parse.get_valid_parameters())
+#Plot.accumulator(accumulator)
+lines = Hough.detector(accumulator, **parse.get_valid_parameters('detector'))
+Draw.lines(shapes, lines, rhos, thetas)
 
-# Show image with manual Hough Transform Lines
-Plot.show(shapes, 'Major Lines: Manual Hough Transform')
+# Show
+Plot.show(shapes, 'Hough Transform')

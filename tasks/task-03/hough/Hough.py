@@ -4,70 +4,39 @@ import numpy as np
 class Hough:
 
     @staticmethod
-    def lines_accumulator(img, rho_resolution=1, theta_resolution=1):
-        height, width = img.shape
-        img_diagonal = np.ceil(np.sqrt(height ** 2 + width ** 2))
-        rhos = np.arange(-img_diagonal, img_diagonal + 1, rho_resolution)
-        thetas = np.deg2rad(np.arange(-90, 90, theta_resolution))
+    def accumulator(edge_image, rho=180, theta=180):
+        edge_height, edge_width = edge_image.shape[:2]
+        edge_height_half, edge_width_half = edge_height / 2, edge_width / 2
 
-        # create the empty Hough Accumulator with dimensions equal to the size of
-        # rhos and thetas
-        accumulator = np.zeros((len(rhos), len(thetas)), dtype=np.uint64)
-        y_idxs, x_idxs = np.nonzero(img)  # find all edge (nonzero) pixel indexes
+        d = np.sqrt(np.square(edge_height) + np.square(edge_width))
+        dtheta = 180 / theta
+        drho = (2 * d) / rho
 
-        for i in range(len(x_idxs)):  # cycle through edge points
-            x = x_idxs[i]
-            y = y_idxs[i]
+        thetas = np.arange(0, 180, step=dtheta)
+        rhos = np.arange(-d, d, step=drho)
 
-            for j in range(len(thetas)):  # cycle through thetas and calc rho
-                rho = int((x * np.cos(thetas[j]) +
-                           y * np.sin(thetas[j])) + img_diagonal)
-                accumulator[rho, j] += 1
+        cos_thetas = np.cos(np.deg2rad(thetas))
+        sin_thetas = np.sin(np.deg2rad(thetas))
+
+        edge_points = np.argwhere(edge_image != 0)
+        edge_points = edge_points - np.array([[edge_height_half, edge_width_half]])
+
+        rho_values = np.matmul(edge_points, np.array([sin_thetas, cos_thetas]))
+
+        accumulator, theta_vals, rho_vals = np.histogram2d(
+            np.tile(thetas, rho_values.shape[0]),
+            rho_values.ravel(),
+            bins=[thetas, rhos]
+        )
+        accumulator = np.transpose(accumulator)
 
         return accumulator, rhos, thetas
 
     @staticmethod
-    def find_peaks(accumulator, num_peaks, threshold=0, nhood_size=3):
-        indicies = []
-        accumulator_copy = np.copy(accumulator)
-        for i in range(num_peaks):
-            idx = np.argmax(accumulator_copy)  # find argmax in flattened array
-            accumulator_copy_idx = np.unravel_index(idx, accumulator_copy.shape)  # remap to shape of H
-            indicies.append(accumulator_copy_idx)
+    def detector(accumulator, threshold=220, take=None):
+        lines = np.argwhere(accumulator > threshold)
 
-            # surpess indicies in neighborhood
-            idx_y, idx_x = accumulator_copy_idx  # first separate x, y indexes from argmax(H)
-            # if idx_x is too close to the edges choose appropriate values
-            if (idx_x - (nhood_size / 2)) < 0:
-                min_x = 0
-            else:
-                min_x = idx_x - (nhood_size / 2)
-            if ((idx_x + (nhood_size / 2) + 1) > accumulator.shape[1]):
-                max_x = accumulator.shape[1]
-            else:
-                max_x = idx_x + (nhood_size / 2) + 1
+        if take is not None:
+            lines = lines[0:take]
 
-            # if idx_y is too close to the edges choose appropriate values
-            if (idx_y - (nhood_size / 2)) < 0:
-                min_y = 0
-            else:
-                min_y = idx_y - (nhood_size / 2)
-            if ((idx_y + (nhood_size / 2) + 1) > accumulator.shape[0]):
-                max_y = accumulator.shape[0]
-            else:
-                max_y = idx_y + (nhood_size / 2) + 1
-
-            # bound each index by the neighborhood size and set all values to 0
-            for x in range(int(min_x), int(max_x)):
-                for y in range(int(min_y), int(max_y)):
-                    # remove neighborhoods in accumulator_copy
-                    accumulator_copy[y, x] = 0
-
-                    # highlight peaks in original H
-                    if (x == int(min_x) or x == (int(max_x) - 1)):
-                        accumulator[y, x] = 255
-                    if (y == int(min_y) or y == (int(max_y) - 1)):
-                        accumulator[y, x] = 255
-
-        # return the indicies and the original Hough space with selected points
-        return indicies, accumulator
+        return lines

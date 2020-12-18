@@ -4,24 +4,21 @@ import numpy as np
 
 class Draw:
 
-    # drawing the lines from the Hough Accumulatorlines using OpevCV cv2.line
     @staticmethod
-    def lines(img, indicies, rhos, thetas):
-        for i in range(len(indicies)):
-            # print("indicies", indicies[i])
-            rho = rhos[indicies[i][0]]
-            theta = thetas[indicies[i][1]]
-            a = np.cos(theta)
-            b = np.sin(theta)
-            x0 = a * rho
-            y0 = b * rho
-            # print(rho, theta)
-            # print(a, b)
-            # print(x0, y0)
-            # these are then scaled so that the lines go off the edges of the image
+    def lines(image, lines, rhos, thetas):
+        edge_height, edge_width = image.shape[:2]
+        edge_height_half, edge_width_half = edge_height / 2, edge_width / 2
+
+        for line in lines:
+            y, x = line
+            rho = rhos[y]
+            theta = thetas[x]
+            a = np.cos(np.deg2rad(theta))
+            b = np.sin(np.deg2rad(theta))
+            x0 = (a * rho) + edge_width_half
+            y0 = (b * rho) + edge_height_half
             x1 = int(x0 + 1000 * (-b))
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-
-            cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.line(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
